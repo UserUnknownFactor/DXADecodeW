@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // 
 // 		ＤＸライブラリアーカイバ Ver5
 // 
@@ -196,8 +196,6 @@ public :
 	static int			EncodeArchiveOneDirectory( char *OutputFileName, char *FolderPath, bool Press = false, const char *KeyString = NULL ) ;		// アーカイブファイルを作成する(ディレクトリ一個だけ)
 	static int			DecodeArchive( char *ArchiveName, char *OutputPath, const char *KeyString = NULL ) ;								// アーカイブファイルを展開する
 
-	static wchar_t*		sJisToW(char* pchTextA, const int cchTextA) ;
-
 	int					OpenArchiveFile( const char *ArchivePath, const char *KeyString = NULL ) ;				// アーカイブファイルを開く( 0:成功  -1:失敗 )
 	int					OpenArchiveFileMem( const char *ArchivePath, const char *KeyString = NULL ) ;			// アーカイブファイルを開き最初にすべてメモリ上に読み込んでから処理する( 0:成功  -1:失敗 )
 	int					OpenArchiveMem( void *ArchiveImage, int ArchiveSize, const char *KeyString = NULL ) ;	// メモリ上にあるアーカイブファイルイメージを開く( 0:成功  -1:失敗 )
@@ -231,7 +229,6 @@ public :
 	static int Decode( void *Src, void *Dest ) ;									// データを解凍する( 戻り値:解凍後のデータサイズ )
 
 	static void printKey(unsigned char* Key);
-
 	DARC_DIRECTORY_VER5 *GetCurrentDirectoryInfo( void ) ;									// アーカイブ内のカレントディレクトリの情報を取得する
 	DARC_FILEHEAD_VER5 *GetFileInfo( const char *FilePath ) ;							// ファイルの情報を得る
 	inline DARC_HEAD_VER5 *GetHeader( void ){ return &Head ; }
@@ -276,7 +273,7 @@ protected :
 	static int StrICmp( const char *Str1, const char *Str2 ) ;							// 比較対照の文字列中の大文字を小文字として扱い比較する( 0:等しい  1:違う )
 	static int ConvSearchData( SEARCHDATA *Dest, const char *Src, int *Length ) ;		// 文字列を検索用のデータに変換( ヌル文字か \ があったら終了 )
 	static int AddFileNameData( const char *FileName, u8 *FileNameTable ) ;				// ファイル名データを追加する( 戻り値は使用したデータバイト数 )
-	static const wchar_t *GetOriginalFileName( u8 *FileNameTable ) ;						// ファイル名データから元のファイル名の文字列を取得する
+	static const char *GetOriginalFileName( u8 *FileNameTable ) ;						// ファイル名データから元のファイル名の文字列を取得する
 	static int GetDirectoryFilePath( const char *DirectoryPath, char *FilePathBuffer = NULL ) ;	// ディレクトリ内のファイルのパスを取得する( FilePathBuffer は一ファイルに付き256バイトの容量が必要 )
 	int	ChangeCurrentDirectoryFast( SEARCHDATA *SearchData ) ;							// アーカイブ内のディレクトリパスを変更する( 0:成功  -1:失敗 )
 	int	ChangeCurrentDirectoryBase( const char *DirectoryPath, bool ErrorIsDirectoryReset, SEARCHDATA *LastSearchData = NULL ) ;		// アーカイブ内のディレクトリパスを変更する( 0:成功  -1:失敗 )
@@ -284,7 +281,6 @@ protected :
 
 	static int char2int(char input);
 	static bool isHex(const char* input, int len);
-	
 	// ２バイト文字か調べる( TRUE:２バイト文字 FALSE:１バイト文字 )
 	inline static int CheckMultiByteChar( const char *Buf )
 	{
@@ -319,7 +315,9 @@ public :
 	int Size( void ) ;											// ファイルのサイズを取得する
 
 	inline DARC_FILEHEAD_VER5 *GetFileData( void ){ return FileData ; }
-} ;
+
+};
+
 
 #endif
 
