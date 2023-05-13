@@ -1,9 +1,0 @@
-﻿Ver 1.00 (0x0001) Public version
-Ver 1.01 (0x0002) Compression function
-Ver 1.02 (0x0003) with encryption function
-Ver 1.03 (0x0004) Changed the format to record the code page in the file header.
-Ver 1.05 (0x0005) Partial change in encryption process
-Ver 1.06 (0x0006) Update to 64bit
-Ver 1.07 (0x0007) Changed the encryption process (Improved the difficulty of deciphering a password)
-Ver 1.08 (0x0008) Change the length of the encryption key to 56bit
-Ver 1.08a <- (unofficial) (0x0008) Decode to unicode file names, file mask support, key guessing
