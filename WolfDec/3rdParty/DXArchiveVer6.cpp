@@ -25,7 +25,7 @@
 #define MAX_ADDRESSLISTNUM	(1024 * 1024 * 1)		// スライド辞書の最大サイズ
 #define MAX_POSITION		(1 << 24)				// 参照可能な最大相対アドレス( 16MB )
 
-WCHAR sjis2utf8_VER6(const char* sjis);
+TCHAR *sjis2utf8_6(char* pchTextA, const int cchTextA);
 
 // struct -----------------------------
 
@@ -306,31 +306,7 @@ int DXArchive_VER6::AddFileNameData( const TCHAR *FileName, u8 *FileNameTable )
 // ファイル名データから元のファイル名の文字列を取得する
 TCHAR *DXArchive_VER6::GetOriginalFileName( u8 *FileNameTable )
 {
-	const char *pName = ((char *)FileNameTable + *((u16 *)&FileNameTable[0]) * 4 + 4);
-
-	bool isMultiByte = false;
-	size_t nameLen = strlen(pName);
-	TCHAR *pFileStr = new TCHAR[nameLen+1]();
-
-	for(size_t si = 0, sf = 0; si < nameLen; si++, sf++)
-	{
-#ifdef _UNICODE
-		if(CheckMultiByteChar((TCHAR*)&pName[si]))
-		{
-			isMultiByte = true;
-			char ss[3];
-			ss[0] = pName[si];
-			ss[1] = pName[si + 1];
-			ss[2] = 0;
-			pFileStr[sf] = sjis2utf8_VER6(ss);
-			si++;
-		}
-		else
-#endif
-			pFileStr[sf] = pName[si];
-	}
-
-	return pFileStr;
+	return sjis2utf8_6((char*)(FileNameTable + *((u16*)&FileNameTable[0]) * 4 + 4), MAX_PATH);
 }
 
 // 標準ストリームにデータを書き込む( 64bit版 )
@@ -2725,17 +2701,12 @@ s64 DXArchiveFile_VER6::Size( void )
 }
 
 
-
-
-
-WCHAR sjis2utf8_VER6(const char* sjis)
+TCHAR *sjis2utf8_6(char* pchTextA, const int cchTextA)
 {
-	LPCCH pSJIS = (LPCCH)sjis;
-
-	int sjisSize = 2;
-	WCHAR *pUTF8 = new WCHAR[sjisSize];
-	MultiByteToWideChar(932, 0, (LPCCH)pSJIS, -1, pUTF8, 2);
-	WCHAR utf8 = pUTF8[0];
-	delete[] pUTF8;
-	return utf8;
+	const int cchEstimatedW = cchTextA;
+	wchar_t* const pchBufW = (wchar_t*)(malloc(cchEstimatedW * sizeof * pchBufW));
+	const int cchActualW = MultiByteToWideChar(932, 0, pchTextA, -1, pchBufW, cchEstimatedW);
+	pchBufW[cchActualW] = '\0';
+	return pchBufW;
 }
+

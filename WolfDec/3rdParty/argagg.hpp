@@ -869,7 +869,7 @@ inline
 option_results& parser_results::operator [] (const wstring& name)
 try {
   return this->options.at(name);
-} catch (const out_of_range& e) {
+} catch (const out_of_range&) {
   wstringstream msg;
   msg << "no option named \"" << name << "\" in parser_results";
   throw unknown_option(msg.str());
@@ -881,7 +881,7 @@ const option_results&
 parser_results::operator [] (const wstring& name) const
 try {
   return this->options.at(name);
-} catch (const out_of_range& e) {
+} catch (const out_of_range&) {
   wstringstream msg;
   msg << "no option named \"" << name << "\" in parser_results";
   throw unknown_option(msg.str());
