@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 //
 //		ファイル関係のライブラリ
 //
@@ -142,7 +142,7 @@ static int __EnumObject( TCHAR *Path, TCHAR *CurrentPath, FILE_INFOLIST *FileLis
 			int i ;
 			const TCHAR *name ;
 
-			name = _tcschr( FindData.cFileName, TEXT( '.' ) ) ;
+			name = _tcsrchr( FindData.cFileName, TEXT( '.' ) ) ;
 			if( name == NULL ) name = TEXT( "" ) ;
 			else name ++ ;
 

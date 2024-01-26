@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------
 // 
 // 		ＤＸライブラリアーカイバ
 // 
@@ -260,7 +260,7 @@ int DXArchive::ConvSearchData( SEARCHDATA *SearchData, const TCHAR *Src, int *Le
 }
 
 // ファイル名データを追加する( 戻り値は使用したデータバイト数 )
-int DXArchive::AddFileNameData( const TCHAR *FileName, u8 *FileNameTable )
+int DXArchive::AddFileNameData( int CharCodeFormat, const TCHAR *FileName, u8 *FileNameTable )
 {
 	int PackNum, Length, i ;
 	u32 Parity ;
@@ -655,7 +655,7 @@ int DXArchive::DirectoryEncode( int CharCodeFormat, TCHAR *DirectoryName, u8 *Na
 	}
 
 	// ディレクトリ名を書き出す
-	Size->NameSize += AddFileNameData( FindData.cFileName, NameP + Size->NameSize ) ;
+	Size->NameSize += AddFileNameData( CharCodeFormat, FindData.cFileName, NameP + Size->NameSize ) ;
 
 	// ディレクトリ情報が入ったファイルヘッダを書き出す
 	memcpy( FileP + ParentDir->FileHeadAddress + DataNumber * sizeof( DARC_FILEHEAD ),
@@ -751,7 +751,7 @@ int DXArchive::DirectoryEncode( int CharCodeFormat, TCHAR *DirectoryName, u8 *Na
 				}
 
 				// ファイル名を書き出す
-				Size->NameSize += AddFileNameData( FindData.cFileName, NameP + Size->NameSize ) ;
+				Size->NameSize += AddFileNameData( CharCodeFormat, FindData.cFileName, NameP + Size->NameSize ) ;
 
 				// ファイル個別の鍵を作成
 				if( NoKey == false )
@@ -1522,7 +1522,7 @@ int DXArchive::Encode( void *Src, u32 SrcSize, void *Dest, bool OutStatus, bool 
 	nextprintaddress = 1024 * 100 ;
 	if( OutStatus )
 	{
-		printf( " 圧縮     " ) ;
+		printf( " Compression     " ) ;
 		LogStringLength += 10 ;
 	}
 	while( srcaddress < SrcSize )
@@ -2091,7 +2091,7 @@ int DXArchive::EncodeArchive(TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath,
 		File.PressDataSize  = 0xffffffffffffffff ;
 
 		// ディレクトリ名の書き出し
-		SizeSave.NameSize += AddFileNameData(TEXT(""), NameP + SizeSave.NameSize ) ;
+		SizeSave.NameSize += AddFileNameData(Head.CharCodeFormat, TEXT(""), NameP + SizeSave.NameSize ) ;
 
 		// ファイル情報の書き出し
 		memcpy( FileP + SizeSave.FileSize, &File, sizeof( DARC_FILEHEAD ) ) ;
@@ -2162,7 +2162,7 @@ int DXArchive::EncodeArchive(TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath,
 			}
 
 			// ファイル名を書き出す
-			SizeSave.NameSize += AddFileNameData( FindData.cFileName, NameP + SizeSave.NameSize ) ;
+			SizeSave.NameSize += AddFileNameData( (int)Head.CharCodeFormat, FindData.cFileName, NameP + SizeSave.NameSize ) ;
 
 			// ファイル個別の鍵を作成
 			if( NoKey == false )

@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------
 // 
 // 		ＤＸライブラリアーカイバ
 // 
@@ -282,7 +282,7 @@ protected :
 	static int DirectoryDecode( u8 *NameP, u8 *DirP, u8 *FileP, DARC_HEAD *Head, DARC_DIRECTORY *Dir, FILE *ArcP, unsigned char *Key, const char *KeyString, size_t KeyStringBytes, bool NoKey, char *KeyStringBuffer ) ;											// 指定のディレクトリデータにあるファイルを展開する
 	static int StrICmp( const TCHAR *Str1, const TCHAR *Str2 ) ;							// 比較対照の文字列中の大文字を小文字として扱い比較する( 0:等しい  1:違う )
 	static int ConvSearchData( SEARCHDATA *Dest, const TCHAR *Src, int *Length ) ;		// 文字列を検索用のデータに変換( ヌル文字か \ があったら終了 )
-	static int AddFileNameData( const TCHAR *FileName, u8 *FileNameTable ) ;				// ファイル名データを追加する( 戻り値は使用したデータバイト数 )
+	static int AddFileNameData(int CharCodeFormat,  const TCHAR *FileName, u8 *FileNameTable ) ;				// ファイル名データを追加する( 戻り値は使用したデータバイト数 )
 	static TCHAR *GetOriginalFileName( u8 *FileNameTable ) ;						// ファイル名データから元のファイル名の文字列を取得する
 	static int GetDirectoryFilePath( const TCHAR *DirectoryPath, TCHAR *FilePathBuffer = NULL ) ;	// ディレクトリ内のファイルのパスを取得する( FilePathBuffer は一ファイルに付き256バイトの容量が必要 )
 	static void EncodeStatusErase( void ) ;														// エンコードの進行状況を表示を消去する
