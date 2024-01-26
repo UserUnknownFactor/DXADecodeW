@@ -65,11 +65,11 @@ int DXArchive::GetFilePathAndDirPath(TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath
 	// ファイル名を抜き出す
 	i = 0 ;
 	Last = -1 ;
-	while( Src[i] != '\0' )
+	while( Src[i] != TEXT('\0') )
 	{
 		if( CheckMultiByteChar( &Src[i] ) == FALSE )
 		{
-			if( Src[i] == '\\' || Src[i] == '/' || Src[i] == '\0' || Src[i] == ':' ) Last = i ;
+			if( Src[i] == TEXT('\\') || Src[i] == TEXT('/') || Src[i] == TEXT('\0') || Src[i] == TEXT(':') ) Last = i ;
 			i ++ ;
 		}
 		else
@@ -114,7 +114,7 @@ DARC_FILEHEAD *DXArchive::GetFileInfo( const TCHAR *FilePath, DARC_DIRECTORY **D
 	OldDir = this->CurrentDirectory ;
 
 	// ファイルパスに \ が含まれている場合、ディレクトリ変更を行う
-	if( _tcschr( FilePath, '\\' ) != NULL )
+	if( _tcschr( FilePath, TEXT('\\') ) != NULL )
 	{
 		// カレントディレクトリを目的のファイルがあるディレクトリに変更する
 		if( this->ChangeCurrentDirectoryBase( FilePath, false, &SearchData ) >= 0 )
@@ -236,7 +236,7 @@ int DXArchive::ConvSearchData( SEARCHDATA *SearchData, const TCHAR *Src, int *Le
 		{
 			// 小文字の場合は大文字に変換
 			if( Src[i] >= 'a' && Src[i] <= 'z' )	SearchData->FileName[i] = (u8)Src[i] - 'a' + 'A' ;
-			else									SearchData->FileName[i] = (u8)Src[i] ;
+			else									SearchData->FileName[i] = Src[i] ;
 			ParityData += (u8)SearchData->FileName[i] ;
 			i ++ ;
 		}
@@ -262,7 +262,7 @@ int DXArchive::ConvSearchData( SEARCHDATA *SearchData, const TCHAR *Src, int *Le
 // ファイル名データを追加する( 戻り値は使用したデータバイト数 )
 int DXArchive::AddFileNameData( int CharCodeFormat, const TCHAR *FileName, u8 *FileNameTable )
 {
-	int PackNum, Length, i ;
+	int PackNum, Length, i;
 	u32 Parity ;
 
 	// サイズをセット
@@ -1078,14 +1078,20 @@ int DXArchive::DirectoryDecode( u8 *NameP, u8 *DirP, u8 *FileP, DARC_HEAD *Head,
 				FILE *DestP ;
 				void *Buffer ;
 			
+				// ファイルを開く
+				TCHAR *pName = GetOriginalFileName(NameP + File->NameAddress);
+				
+				if (GetFileAttributes(pName) != 0xFFFFFFFF) 
+				{
+					delete[] pName;
+					continue;
+				}
+
 				// ファイルの場合は展開する
 				
 				// バッファを確保する
 				Buffer = malloc( DXA_BUFFERSIZE ) ;
 				if( Buffer == NULL ) return -1 ;
-
-				// ファイルを開く
-				TCHAR *pName = GetOriginalFileName(NameP + File->NameAddress);
 
 				DestP = _tfopen(pName, TEXT("wb"));
 				// ファイル個別の鍵を作成
@@ -1855,7 +1861,7 @@ int DXArchive::Decode( void *Src, void *Dest )
 			srcsize -= 3 ;
 			break ;
 		}
-		index ++ ;		// 保存時に－１しているので＋１する
+		index++ ;		// 保存時に－１しているので＋１する
 
 		// 展開
 		if( index < conbo )
@@ -3222,7 +3228,8 @@ int	DXArchive::ChangeCurrentDirectoryFast( SEARCHDATA *SearchData )
 {
 	DARC_FILEHEAD *FileH ;
 	int i, j, k, Num ;
-	u8 *NameData, *PathData ;
+	u8 *NameData;
+	TCHAR *PathData;
 	u16 PackNum, Parity ;
 
 	PackNum  = SearchData->PackNum ;

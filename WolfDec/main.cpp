@@ -98,11 +98,12 @@ bool unpackArchive(const uint32_t mode, const TCHAR* pFilePath)
 
 	failed = curMode.decFunc(fullPath, L"", curMode.key.data()) < 0;
 	if (failed) {
+		std::wcout << "\n Failed to decode: " << wstring(fileName) << " ";
 		SetCurrentDirectory(directoryPath);
 		RemoveDirectory(fileName);
 	}
 	else {
-		std::wcout << " Mode: " << wstring(curMode.name) << " ";
+		std::wcout << "Mode: " << wstring(curMode.name) << " ";
 	}
 
 	return failed;

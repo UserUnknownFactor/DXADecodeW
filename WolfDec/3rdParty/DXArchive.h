@@ -273,7 +273,7 @@ protected :
 	// ファイル名検索用データ構造体
 	typedef struct tagSEARCHDATA
 	{
-		u8 FileName[1024] ;
+		TCHAR FileName[1024] ;
 		u16 Parity ;
 		u16 PackNum ;
 	} SEARCHDATA ;
