@@ -300,7 +300,7 @@ protected :
 
 	// ファイル名も一緒になっていると分かっているパス中からファイルパスとディレクトリパスを分割する
 	// フルパスである必要は無い
-	static int GetFilePathAndDirPath(TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath ) ;
+	static int GetFilePathAndDirPath(const TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath ) ;
 } ;
 
 

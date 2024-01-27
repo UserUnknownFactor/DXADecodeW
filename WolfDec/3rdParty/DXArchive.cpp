@@ -35,7 +35,7 @@ TCHAR *sjis2utf8(char* pchTextA, const int cchTextA)
 	const int cchEstimatedW = cchTextA;
 	wchar_t* const pchBufW = (wchar_t*)(malloc(cchEstimatedW * sizeof * pchBufW));
 	const int cchActualW = MultiByteToWideChar(932, 0, pchTextA, -1, pchBufW, cchEstimatedW);
-	pchBufW[cchActualW] = '\0';
+	pchBufW[cchActualW] = TEXT('\0');
 	return pchBufW;
 }
 
@@ -58,7 +58,7 @@ size_t LogStringLength = 0 ;
 
 // ファイル名も一緒になっていると分かっているパス中からファイルパスとディレクトリパスを分割する
 // フルパスである必要は無い
-int DXArchive::GetFilePathAndDirPath(TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath )
+int DXArchive::GetFilePathAndDirPath(const TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath )
 {
 	int i, Last ;
 	
@@ -89,11 +89,11 @@ int DXArchive::GetFilePathAndDirPath(TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath
 		if( Last != -1 )
 		{
 			_tcsncpy( DirPath, Src, Last ) ;
-			DirPath[Last] = '\0' ;
+			DirPath[Last] = TEXT('\0') ;
 		}
 		else
 		{
-			DirPath[0] = '\0' ;
+			DirPath[0] = TEXT('\0') ;
 		}
 	}
 	
@@ -785,29 +785,29 @@ int DXArchive::DirectoryEncode( int CharCodeFormat, TCHAR *DirectoryName, u8 *Na
 							TCHAR *sp ;
 						
 							sp = &FindData.cFileName[Len-3] ;
-							if( StrICmp( sp, TEXT("wav") ) == 0 ||
-								StrICmp( sp, TEXT("jpg") ) == 0 ||
-								StrICmp( sp, TEXT("png") ) == 0 ||
-								StrICmp( sp, TEXT("mpg") ) == 0 ||
-								StrICmp( sp, TEXT("mp3") ) == 0 ||
-								StrICmp( sp, TEXT("mp4") ) == 0 ||
-								StrICmp( sp, TEXT("m4a") ) == 0 ||
-								StrICmp( sp, TEXT("ogg") ) == 0 ||
-								StrICmp( sp, TEXT("ogv") ) == 0 ||
-								StrICmp( sp, TEXT("ops") ) == 0 ||
-								StrICmp( sp, TEXT("wmv") ) == 0 ||
-								StrICmp( sp, TEXT("tif") ) == 0 ||
-								StrICmp( sp, TEXT("tga") ) == 0 ||
-								StrICmp( sp, TEXT("bmp") ) == 0 ||
-								StrICmp( sp - 1, TEXT("jpeg") ) == 0 )
+							if( _tcsncicmp( sp, TEXT("wav"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("jpg"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("png"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("mpg"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("mp3"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("mp4"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("m4a"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("ogg"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("ogv"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("ops"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("wmv"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("tif"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("tga"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("bmp"), 3 ) == 0 ||
+								_tcsncicmp( sp - 1, TEXT("jpeg"), 4 ) == 0 )
 							{
 								Huffman = true ;
 							}
 
 							// wav や bmp の場合は必ず圧縮する
-							if( StrICmp( sp, TEXT("wav") ) == 0 ||
-								StrICmp( sp, TEXT("tga") ) == 0 ||
-								StrICmp( sp, TEXT("bmp") ) == 0 )
+							if( _tcsncicmp( sp, TEXT("wav"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("tga"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("bmp"), 3 ) == 0 )
 							{
 								AlwaysPress = true ;
 							}
@@ -839,17 +839,17 @@ int DXArchive::DirectoryEncode( int CharCodeFormat, TCHAR *DirectoryName, u8 *Na
 							TCHAR *sp ;
 							
 							sp = &FindData.cFileName[Len-3] ;
-							if( StrICmp( sp, TEXT("wav") ) == 0 ||
-								StrICmp( sp, TEXT("jpg") ) == 0 ||
-								StrICmp( sp, TEXT("png") ) == 0 ||
-								StrICmp( sp, TEXT("mpg") ) == 0 ||
-								StrICmp( sp, TEXT("mp3") ) == 0 ||
-								StrICmp( sp, TEXT("mp4") ) == 0 ||
-								StrICmp( sp, TEXT("ogg") ) == 0 ||
-								StrICmp( sp, TEXT("ogv") ) == 0 ||
-								StrICmp( sp, TEXT("ops") ) == 0 ||
-								StrICmp( sp, TEXT("wmv") ) == 0 ||
-								StrICmp( sp - 1, TEXT("jpeg") ) == 0 ) goto NOPRESS ;
+							if( _tcsncicmp( sp, TEXT("wav"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("jpg"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("png"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("mpg"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("mp3"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("mp4"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("ogg"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("ogv"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("ops"), 3 ) == 0 ||
+								_tcsncicmp( sp, TEXT("wmv"), 3 ) == 0 ||
+								_tcsncicmp( sp - 1, TEXT("jpeg"), 4 ) == 0 ) goto NOPRESS ;
 						}
 						
 						// データが丸ごと入るメモリ領域の確保
@@ -2202,29 +2202,29 @@ int DXArchive::EncodeArchive(TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath,
 						TCHAR *sp ;
 						
 						sp = &FindData.cFileName[Len-3] ;
-						if( StrICmp( sp, TEXT("wav") ) == 0 ||
-							StrICmp( sp, TEXT("jpg") ) == 0 ||
-							StrICmp( sp, TEXT("png") ) == 0 ||
-							StrICmp( sp, TEXT("mpg") ) == 0 ||
-							StrICmp( sp, TEXT("mp3") ) == 0 ||
-							StrICmp( sp, TEXT("mp4") ) == 0 ||
-							StrICmp( sp, TEXT("m4a") ) == 0 ||
-							StrICmp( sp, TEXT("ogg") ) == 0 ||
-							StrICmp( sp, TEXT("ogv") ) == 0 ||
-							StrICmp( sp, TEXT("ops") ) == 0 ||
-							StrICmp( sp, TEXT("wmv") ) == 0 ||
-							StrICmp( sp, TEXT("tif") ) == 0 ||
-							StrICmp( sp, TEXT("tga") ) == 0 ||
-							StrICmp( sp, TEXT("bmp") ) == 0 ||
-							StrICmp( sp - 1, TEXT("jpeg") ) == 0 )
+						if( _tcsncicmp( sp, TEXT("wav"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("jpg"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("png"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("mpg"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("mp3"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("mp4"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("m4a"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("ogg"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("ogv"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("ops"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("wmv"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("tif"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("tga"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("bmp"), 3 ) == 0 ||
+							_tcsncicmp( sp - 1, TEXT("jpeg"), 4 ) == 0 )
 						{
 							Huffman = true ;
 						}
 
 						// wav や bmp の場合は必ず圧縮する
-						if( StrICmp( sp, TEXT("wav") ) == 0 ||
-							StrICmp( sp, TEXT("tga") ) == 0 ||
-							StrICmp( sp, TEXT("bmp") ) == 0 )
+						if( _tcsncicmp( sp, TEXT("wav"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("tga"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("bmp"), 3 ) == 0 )
 						{
 							AlwaysPress = true ;
 						}
@@ -2256,17 +2256,17 @@ int DXArchive::EncodeArchive(TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath,
 						TCHAR *sp ;
 						
 						sp = &FindData.cFileName[Len-3] ;
-						if( StrICmp( sp, TEXT("wav") ) == 0 ||
-							StrICmp( sp, TEXT("jpg") ) == 0 ||
-							StrICmp( sp, TEXT("png") ) == 0 ||
-							StrICmp( sp, TEXT("mpg") ) == 0 ||
-							StrICmp( sp, TEXT("mp3") ) == 0 ||
-							StrICmp( sp, TEXT("mp4") ) == 0 ||
-							StrICmp( sp, TEXT("ogg") ) == 0 ||
-							StrICmp( sp, TEXT("ogv") ) == 0 ||
-							StrICmp( sp, TEXT("ops") ) == 0 ||
-							StrICmp( sp, TEXT("wmv") ) == 0 ||
-							StrICmp( sp - 1, TEXT("jpeg") ) == 0 ) goto NOPRESS ;
+						if( _tcsncicmp( sp, TEXT("wav"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("jpg"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("png"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("mpg"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("mp3"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("mp4"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("ogg"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("ogv"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("ops"), 3 ) == 0 ||
+							_tcsncicmp( sp, TEXT("wmv"), 3 ) == 0 ||
+							_tcsncicmp( sp - 1, TEXT("jpeg"), 4 ) == 0 ) goto NOPRESS ;
 					}
 
 					// データが丸ごと入るメモリ領域の確保
@@ -3314,13 +3314,6 @@ int	DXArchive::ChangeCurrentDirectoryBase( const TCHAR *DirectoryPath, bool Erro
 		// ディレクトリを変更
 		if( ChangeCurrentDirectoryFast( &SearchData ) < 0 ) goto ERR ;
 
-/*		// \ が無い場合は、同名のディレクトリを探す
-		FileH = ( DARC_FILEHEAD * )( this->FileP + this->CurrentDirectory->FileHeadAddress ) ;
-		for( i = 0 ;
-			 i < (s32)this->CurrentDirectory->FileHeadNum &&
-			 StrICmp( ( char * )( this->NameP + FileH->NameAddress ), DirectoryPath ) != 0 ;
-			 i ++, FileH ++ ){}
-*/
 	}
 	else
 	{
