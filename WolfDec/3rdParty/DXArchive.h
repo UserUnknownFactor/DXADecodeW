@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // 
 // 		ＤＸライブラリアーカイバ
 // 
@@ -15,6 +15,9 @@
 // include --------------------------------------
 #include <stdio.h>
 #include <tchar.h>
+
+#include <string>
+#include <vector>
 
 // define ---------------------------------------
 
@@ -191,8 +194,9 @@ public :
 	DXArchive(TCHAR *ArchivePath = NULL ) ;
 	~DXArchive() ;
 
-	static int			EncodeArchive(TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath, int FileNum, bool Press = false, bool AlwaysHuffman = false, u8 HuffmanEncodeKB = 0, const char *KeyString_ = NULL, bool NoKey = false, bool OutputStatus = true, bool MaxPress = false ) ;	// アーカイブファイルを作成する
-	static int			EncodeArchiveOneDirectory(TCHAR *OutputFileName, TCHAR *FolderPath, bool Press = false, bool AlwaysHuffman = false, u8 HuffmanEncodeKB = 0, const char *KeyString_ = NULL, bool NoKey = false, bool OutputStatus = true, bool MaxPress = false ) ;		// アーカイブファイルを作成する(ディレクトリ一個だけ)
+	static int			EncodeArchive(const TCHAR *OutputFileName, const std::vector<std::wstring> &FileOrDirectoryPath, int FileNum, bool Press = false, bool AlwaysHuffman = false, u8 HuffmanEncodeKB = 0, const char *KeyString_ = NULL, bool NoKey = false, bool OutputStatus = true, bool MaxPress = false, uint16_t cryptVersion = 0); // アーカイブファイルを作成する
+	static int 			EncodeArchiveOneDirectory(const TCHAR *OutputFileName, const TCHAR *FolderPath, bool Press = false, bool AlwaysHuffman = false, u8 HuffmanEncodeKB = 0, const char *KeyString_ = NULL, bool NoKey = false, bool OutputStatus = true, bool MaxPress = false, uint16_t cryptVersion = 0);                               // アーカイブファイルを作成する(ディレクトリ一個だけ)
+	static int			EncodeArchiveOneDirectoryWolf(const TCHAR *OutputFileName, const TCHAR *DirectoryPath, bool Press = false, const char *KeyString_ = NULL, uint16_t cryptVersion = 0);
 	static int			DecodeArchive(TCHAR *ArchiveName, const TCHAR *OutputPath, const char *KeyString_ = NULL ) ;								// アーカイブファイルを展開する
 
 	int					OpenArchiveFile( const TCHAR *ArchivePath, const char *KeyString_ = NULL ) ;				// アーカイブファイルを開く( 0:成功  -1:失敗 )
@@ -273,7 +277,7 @@ protected :
 	// ファイル名検索用データ構造体
 	typedef struct tagSEARCHDATA
 	{
-		TCHAR FileName[1024] ;
+		u8 FileName[1024] ;
 		u16 Parity ;
 		u16 PackNum ;
 	} SEARCHDATA ;
@@ -282,9 +286,9 @@ protected :
 	static int DirectoryDecode( u8 *NameP, u8 *DirP, u8 *FileP, DARC_HEAD *Head, DARC_DIRECTORY *Dir, FILE *ArcP, unsigned char *Key, const char *KeyString, size_t KeyStringBytes, bool NoKey, char *KeyStringBuffer ) ;											// 指定のディレクトリデータにあるファイルを展開する
 	static int StrICmp( const TCHAR *Str1, const TCHAR *Str2 ) ;							// 比較対照の文字列中の大文字を小文字として扱い比較する( 0:等しい  1:違う )
 	static int ConvSearchData( SEARCHDATA *Dest, const TCHAR *Src, int *Length ) ;		// 文字列を検索用のデータに変換( ヌル文字か \ があったら終了 )
-	static int AddFileNameData(int CharCodeFormat,  const TCHAR *FileName, u8 *FileNameTable ) ;				// ファイル名データを追加する( 戻り値は使用したデータバイト数 )
+	static int AddFileNameData( const TCHAR *FileName, u8 *FileNameTable ) ;				// ファイル名データを追加する( 戻り値は使用したデータバイト数 )
 	static TCHAR *GetOriginalFileName( u8 *FileNameTable ) ;						// ファイル名データから元のファイル名の文字列を取得する
-	static int GetDirectoryFilePath( const TCHAR *DirectoryPath, TCHAR *FilePathBuffer = NULL ) ;	// ディレクトリ内のファイルのパスを取得する( FilePathBuffer は一ファイルに付き256バイトの容量が必要 )
+	static int GetDirectoryFilePath(const TCHAR *DirectoryPath, std::vector<std::wstring> *FilePathBuffer = NULL); // ディレクトリ内のファイルのパスを取得する( FilePathBuffer は一ファイルに付き256バイトの容量が必要 )
 	static void EncodeStatusErase( void ) ;														// エンコードの進行状況を表示を消去する
 	static void EncodeStatusOutput( DARC_ENCODEINFO *EncodeInfo, bool Always = false ) ;		// エンコードの進行状況を表示する
 	static void AnalyseHuffmanEncode( u64 DataSize, u8 HuffmanEncodeKB, u64 *HeadDataSize, u64 *FootDataSize ) ;	// ハフマン圧縮をする前後のサイズを取得する
@@ -292,7 +296,7 @@ protected :
 	int	ChangeCurrentDirectoryBase( const TCHAR *DirectoryPath, bool ErrorIsDirectoryReset, SEARCHDATA *LastSearchData = NULL ) ;		// アーカイブ内のディレクトリパスを変更する( 0:成功  -1:失敗 )
 	int DirectoryKeyConv( DARC_DIRECTORY *Dir, char *KeyStringBuffer ) ;										// 指定のディレクトリデータの暗号化を解除する( 丸ごとメモリに読み込んだ場合用 )
 
-	// NOTE: This method won't always work correctly so don't use it
+	// ２バイト文字か調べる( TRUE:２バイト文字 FALSE:１バイト文字 )
 	inline static int CheckMultiByteChar( const TCHAR *Buf )
 	{
 		return  ( (unsigned char)*Buf >= 0x81 && (unsigned char)*Buf <= 0x9F ) || ( (unsigned char)*Buf >= 0xE0 && (unsigned char)*Buf <= 0xFC ) ;
@@ -300,7 +304,7 @@ protected :
 
 	// ファイル名も一緒になっていると分かっているパス中からファイルパスとディレクトリパスを分割する
 	// フルパスである必要は無い
-	static int GetFilePathAndDirPath(const TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath ) ;
+	static int GetFilePathAndDirPath(TCHAR *Src, TCHAR *FilePath, TCHAR *DirPath ) ;
 } ;
 
 
