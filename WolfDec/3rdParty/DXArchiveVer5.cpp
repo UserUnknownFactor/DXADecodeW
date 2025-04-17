@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // 
 // 		ＤＸライブラリアーカイバ Ver5
 // 
@@ -14,6 +14,7 @@
 #include "DXArchiveVer5.h"
 #include <stdio.h>
 #include <windows.h>
+#include <stdint.h>
 #include <string.h>
 
 // define -----------------------------
@@ -25,7 +26,8 @@
 #define MAX_ADDRESSLISTNUM_VER5	(1024 * 1024 * 1)		// スライド辞書の最大サイズ
 #define MAX_POSITION_VER5		(1 << 24)				// 参照可能な最大相対アドレス( 16MB )
 
-TCHAR *sjis2utf8_5(char* pchTextA, const int cchTextA);
+static WCHAR *sjis2utf8(const char *sjis, const int32_t &len);
+static char *utf82sjis(const WCHAR *utf8);
 
 // struct -----------------------------
 
@@ -275,7 +277,81 @@ int DXArchive_VER5::ConvSearchData( SEARCHDATA *SearchData, const TCHAR *Src, in
 	return 0 ;
 }
 
+
 // ファイル名データを追加する( 戻り値は使用したデータバイト数 )
+int DXArchive_VER5::AddFileNameData(const TCHAR *FileName, u8 *FileNameTable)
+{
+	int PackNum, Length, i;
+	u32 Parity;
+
+	char *fN = utf82sjis(FileName);
+
+	// サイズをセット
+	Length = static_cast<int>(strlen(fN));
+
+	// 一文字も無かった場合の処理
+	if (Length == 0)
+	{
+		// パック数とパリティ情報のみ保存
+		*((u32 *)&FileNameTable[0]) = 0;
+
+		// 使用サイズを返す
+		return 4;
+	}
+	Length++;
+
+	PackNum = (Length + 3) / 4;
+
+	// パック数を保存
+	*((u16 *)&FileNameTable[0]) = PackNum;
+
+	// バッファの初期化
+	memset(&FileNameTable[4], 0, PackNum * 4 * 2);
+
+	// 文字列をコピー
+	strcpy((char *)&FileNameTable[4 + PackNum * 4], fN);
+
+	// 英字の小文字を全て大文字に変換したファイル名を保存
+	Parity = 0;
+	for (i = 0; fN[i] != '\0';)
+	{
+		// ２バイト文字かどうかで処理を分岐
+		if (CheckMultiByteChar(&fN[i]) == TRUE)
+		{
+			// ２バイト文字
+			*((u16 *)&FileNameTable[4 + i]) = *((u16 *)&fN[i]);
+			Parity += (u8)fN[i] + (u8)fN[i + 1];
+			i += 2;
+		}
+		else
+		{
+			// １バイト文字
+			if (fN[i] >= 'a' && fN[i] <= 'z')
+			{
+				// 小文字の場合は大文字に変換
+				FileNameTable[4 + i] = (u8)fN[i] - 'a' + 'A';
+			}
+			else
+			{
+				// そうではない場合は普通にコピー
+				FileNameTable[4 + i] = (u8)fN[i];
+			}
+			Parity += FileNameTable[4 + i];
+			i++;
+		}
+	}
+
+	// パリティ情報を保存
+	*((u16 *)&FileNameTable[2]) = (u16)Parity;
+
+	delete[] fN;
+
+	// 使用したサイズを返す
+	return PackNum * 4 * 2 + 4;
+}
+
+// ファイル名データを追加する( 戻り値は使用したデータバイト数 )
+/*
 int DXArchive_VER5::AddFileNameData( const TCHAR *FileName, u8 *FileNameTable )
 {
 	int PackNum, i ;
@@ -343,11 +419,15 @@ int DXArchive_VER5::AddFileNameData( const TCHAR *FileName, u8 *FileNameTable )
 	// 使用したサイズを返す
 	return PackNum * 4 * 2 + 4 ;
 }
-
+*/
 // ファイル名データから元のファイル名の文字列を取得する
 TCHAR *DXArchive_VER5::GetOriginalFileName( u8 *FileNameTable )
 {
-	return sjis2utf8_5((char*)(FileNameTable + *((u16*)&FileNameTable[0]) * 4 + 4), MAX_PATH);
+	const char *pName = ((char *)FileNameTable + *((u16 *)&FileNameTable[0]) * 4 + 4);
+
+	bool isMultiByte = false;
+	int32_t nameLen  = static_cast<int32_t>(strlen(pName));
+	return sjis2utf8(pName, nameLen);
 }
 
 // データを反転させる関数
@@ -1000,7 +1080,7 @@ int DXArchive_VER5::DirectoryDecode( u8 *NameP, u8 *DirP, u8 *FileP, DARC_HEAD_V
 
 				// ファイル属性を付ける
 				pName = GetOriginalFileName(NameP + File->NameAddress);
-				SetFileAttributes( pName, File->Attributes ) ;
+				SetFileAttributes(pName, File->Attributes & ~(FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_HIDDEN));
 				delete[] pName;
 			}
 		}
@@ -1359,7 +1439,7 @@ NOENCODE:
 			if( srcaddress + maxconbo < SrcSize )
 			{
 				sp2 = &sp[1] ;
-				for( j = 1 ; j < maxconbo && (u32)&sp2[2] - (u32)srcp < SrcSize ; j ++, sp2 ++ )
+				for (j = 1; j < maxconbo && (u64)&sp2[2] - (u64)srcp < SrcSize; j++, sp2++)
 				{
 					code = *((u16 *)sp2) ;
 					list = (LZ_LIST_VER5 *)( listfirsttable + code * sizeof( u32 ) ) ;
@@ -1419,7 +1499,7 @@ NOENCODE:
 // デコード( 戻り値:解凍後のサイズ  -1 はエラー  Dest に NULL を入れることも可能 )
 int DXArchive_VER5::Decode( void *Src, void *Dest )
 {
-	u32 srcsize, destsize, code, indexsize, keycode, conbo, index ;
+	u32 srcsize, destsize, code, indexsize, keycode, conbo, index = 0;
 	u8 *srcp, *destp, *dp, *sp ;
 
 	destp = (u8 *)Dest ;
@@ -1541,7 +1621,7 @@ int DXArchive_VER5::Decode( void *Src, void *Dest )
 
 
 // アーカイブファイルを作成する(ディレクトリ一個だけ)
-int DXArchive_VER5::EncodeArchiveOneDirectory(TCHAR *OutputFileName, TCHAR *DirectoryPath, bool Press, const char *KeyString )
+int DXArchive_VER5::EncodeArchiveOneDirectory(const TCHAR *OutputFileName, const TCHAR *DirectoryPath, bool Press, const char *KeyString, uint16_t cryptVersion )
 {
 	int i, FileNum, Result ;
 	TCHAR **FilePathList, *NameBuffer ;
@@ -1572,7 +1652,7 @@ int DXArchive_VER5::EncodeArchiveOneDirectory(TCHAR *OutputFileName, TCHAR *Dire
 }
 
 // アーカイブファイルを作成する
-int DXArchive_VER5::EncodeArchive(TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath, int FileNum, bool Press, const char *KeyString )
+int DXArchive_VER5::EncodeArchive(const TCHAR *OutputFileName, TCHAR **FileOrDirectoryPath, int FileNum, bool Press, const char *KeyString )
 {
 	DARC_HEAD_VER5 Head ;
 	DARC_DIRECTORY_VER5 Directory ;
@@ -2925,12 +3005,20 @@ int DXArchiveFile_VER5::Size( void )
 }
 
 
-TCHAR *sjis2utf8_5(char* pchTextA, const int cchTextA)
+
+
+static WCHAR *sjis2utf8(const char *sjis, const int32_t &len)
 {
-	const int cchEstimatedW = cchTextA;
-	wchar_t* const pchBufW = (wchar_t*)(malloc(cchEstimatedW * sizeof * pchBufW));
-	const int cchActualW = MultiByteToWideChar(932, 0, pchTextA, -1, pchBufW, cchEstimatedW);
-	pchBufW[cchActualW] = '\0';
-	return pchBufW;
+	WCHAR *pUTF8 = new WCHAR[len + 1]();
+	MultiByteToWideChar(932, 0, (LPCCH)sjis, -1, pUTF8, len);
+	return pUTF8;
 }
 
+static char *utf82sjis(const WCHAR *utf8)
+{
+	int32_t sizeRequired = WideCharToMultiByte(932, 0, utf8, -1, NULL, 0, NULL, NULL);
+	char *pSJIS          = new char[sizeRequired]();
+	WideCharToMultiByte(932, 0, utf8, -1, pSJIS, sizeRequired, NULL, NULL);
+
+	return pSJIS;
+}

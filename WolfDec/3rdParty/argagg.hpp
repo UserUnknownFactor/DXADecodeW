@@ -45,8 +45,6 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
 /**
  * @brief
  * There are only two hard things in Computer Science: cache invalidation and
@@ -94,6 +92,8 @@ using namespace std;
  * from option name to the argagg::option_results. All positional arguments are
  * simply stored in a vector of C-strings.
  */
+using namespace std;
+
 namespace argagg {
 
 class argagg_error : public runtime_error {
